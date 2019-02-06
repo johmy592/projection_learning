@@ -2,10 +2,12 @@ from helpers import sigmoid
 import numpy as np
 
 
-def one_iter(examples, transforms, b, learning_rate=0.1):
+def one_iter(examples, transforms, b, learning_rate=0.01):
     '''
     Runs one iteration through all provided examples
     '''
+    d = 50
+    k = 24
     total_loss = 0
     for q,h,t in examples:
         # project the query with all of the projection matrices
@@ -58,6 +60,8 @@ def train(embeddings, train_examples, num_iter=1000):
     '''
     The main training algorithm. 
     '''
+    d = 50
+    k = 24
     transforms = [] #phi
     for i in range(k):
         transforms.append(np.identity(d) +np.random.normal(0, 0.1, [d,d]))

@@ -5,6 +5,7 @@ def extract(q, transforms, embeddings, b, n=3):
     '''
     Extract the n top ranked candidates
     '''
+    
     #print("Q: ", q,"\n")
     # p: All projections of q, list of k vectors
     p = [np.dot(transforms[i],q).T for i in range(k)]
