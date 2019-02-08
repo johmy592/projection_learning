@@ -1,6 +1,6 @@
 import numpy as np
 
-def load_embeddings(glove_file):
+def load_glove_embeddings(glove_file):
     f = open(glove_file,'r')
     model = {}
     for line in f:
@@ -11,3 +11,13 @@ def load_embeddings(glove_file):
     print("Done.",len(model)," words loaded!")
     f.close()
     return model
+
+def load_wiki_embeddings(fname):
+    fin = open(fname, 'r', encoding='utf-8', newline='\n', errors='ignore')
+    n, d = map(int, fin.readline().split())
+    data = {}
+    for line in fin:
+        tokens = line.rstrip().split(' ')
+        data[tokens[0]] = map(float, tokens[1:])
+    print("Done.",len(model)," words loaded!")
+    return data

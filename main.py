@@ -2,7 +2,7 @@ import numpy as np
 import random
 from training import *
 from evaluate import *
-from load_glove import load_embeddings
+from load_glove import * 
 
 
 

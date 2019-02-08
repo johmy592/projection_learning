@@ -1,37 +1,55 @@
 from helpers import sigmoid
+from globals import *
 import numpy as np
+import random
 
+def split_pos_neg(data):
+    '''
+    splits the training data into two sets, one with positive
+    examples and one with negative examples
+    '''
+    pos_data = [(q,h,t) for q,h,t in data if t == 1]
+    neg_data = [(q,h,t) for q,h,t in data if t == 0]
+    return pos_data, neg_data
+
+def select_batch(pos_data, neg_data, num_pos=32, num_neg=32*5):
+    '''
+    Selects a random batch from all training data
+    '''
+    training_batch = []
+    training_batch += random.sample(pos_data, num_pos)
+    training_batch += random.sample(neg_data, num_neg)
+    return training_batch
 
 def one_iter(examples, transforms, b, learning_rate=0.01):
     '''
     Runs one iteration through all provided examples
     '''
-    d = 50
-    k = 24
+    #maxnorm = 0
     total_loss = 0
     for q,h,t in examples:
         # project the query with all of the projection matrices
-        
+
         p = [np.dot(transforms[i],q).T for i in range(k)]
-        
-        
+
+
         # Normalize the projections
-        for i in range(k):
-            p[i] = p[i] / np.sqrt((np.sum(p[i]**2)))
-        
+        #for i in range(k):
+        #    p[i] = p[i] / np.sqrt((np.sum(p[i]**2)))
+
         # compute similarities between all projections and the candidate
         s = np.dot(p,h)
-        
+
         # Apply sigmoid function and find the transformation that resulted
         # in the closest projection to the candidate
         sigmoids = sigmoid(np.add(s,b))
         maxsim = np.argmax(sigmoids)
-        
+
         # y: predicted similarity
-        # x: the corresponding projected vector 
+        # x: the corresponding projected vector
         y = sigmoids[maxsim]
         x = p[maxsim]
-        
+
         if(y == 0 or y==1):
             print("Perfect hit")
             continue
@@ -39,9 +57,12 @@ def one_iter(examples, transforms, b, learning_rate=0.01):
         # in accordance with gradient descent.
         loss = t*np.log(y) + (np.subtract(1,t)*np.log(np.subtract(1,y)))
         total_loss += loss
-        
+
         gradient = np.dot(x.T,loss)
-        
+        #gradnorm = np.linalg.norm(gradient,2)
+        #if(gradnorm > maxnorm):
+        #    maxnorm = gradnorm
+
         #print("Grad: ",gradient,"\n")
         #print("Grad*lr: ", np.multiply(learning_rate,gradient))
         prev_theta = transforms[maxsim]
@@ -53,22 +74,26 @@ def one_iter(examples, transforms, b, learning_rate=0.01):
         b_loss = y + (b[maxsim]-t)
         prev_b = b[maxsim]
         b[maxsim] =  np.subtract(prev_b, np.multiply(learning_rate, b_loss))
+    #print("Maxnorm: ", maxnorm, "\n")
     return total_loss
-        
 
-def train(embeddings, train_examples, num_iter=1000):
+
+def train(embeddings, train_examples, num_iter=10, batching=False, learning_rate=0.01):
     '''
-    The main training algorithm. 
+    The main training algorithm.
     '''
-    d = 50
-    k = 24
+    if batching:
+        pos_examples,neg_examples = split_pos_neg(train_examples)
+
     transforms = [] #phi
     for i in range(k):
-        transforms.append(np.identity(d) +np.random.normal(0, 0.1, [d,d]))
+        transforms.append(np.identity(d) +np.random.normal(0, 0.5, [d,d]))
     b = np.zeros(k)  #bias
-    
+
     for it in range(num_iter):
-        loss = one_iter(train_examples, transforms,b)
+        if batching:
+            train_examples = select_batch(pos_examples,neg_examples)
+        loss = one_iter(train_examples, transforms,b, learning_rate)
         print("Loss, iter: ", loss/len(train_examples), it, "\n")
     #print(b)
     return (transforms, b)
