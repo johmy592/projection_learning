@@ -47,9 +47,19 @@ def replace_with_embedding(train_examples, embeddings, add_neg = 0):
     output:
     list of (embedding,embedding,int) triples
     '''
+    possible_negatives = []
+    if(add_neg):
+        vocab_f = "/home/johannes/thesis_code/ml_experimentation/data/testing/1A.english.vocabulary.txt"
+        df = open(vocab_f,'r')
+        test_examples = []
+        for line in df:
+            test_examples += line.split('\t')
+        test_examples = list(set(test_examples))
+        possible_negatives = [w.strip('\n') for w in test_examples if w.strip('\n') in embeddings]
+        df.close()
+
     embedding_triples = []
     corresponding_words = []
-    possible_negatives = list(embeddings.keys())
     for q,h,t in train_examples:
         if((not q in embeddings) or (not h in embeddings)):
             continue
